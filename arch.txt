@@ -1,0 +1,45 @@
+├── README.md
+├── bin
+├── replace_ip.sh                              #初始化脚本，替换宿主机ip
+├── bizservices                                #业务模块，各个独立自己维护一个独立的文件夹
+│  ├── apps                                    #springboot jar文件目录
+│  │  └── biz1.jar                             #业务下的应用单元
+│  ├── docker-compose.yml                      #该业务的docker配置
+│  ├── env.properties                          #业务的环境配置，注意nacos配置必须和基座一致，不然服务发现不了
+│  └── logs                                    #日志目录，运行后生成
+│      └── biz1
+├── microsystem                                #底座服务
+│  ├── apps
+│  │  ├── c-gateway.jar                        #springcloud的网关应用，http流量入口，支持nacos自动分发
+│  │  ├── c-infra-server.jar                   #基础设施服务
+│  │  └── c-system-server.jar                  #系统服务
+│  ├── arthas                                  #arthas工具，线上诊断
+│  ├── docker-compose.yml                      #各个微服务一个实例启动脚本
+│  ├── env.properties                          #基座使用的各个中间件连接的变量
+│  └── logs
+│      ├── c-gateway
+│      ├── c-infra
+│      └── c-system
+└── middleware                                 #中间件
+      ├── docker-compose.yml                      #docker启动配置
+      ├── initdir.sh                              #初始化目录配置
+      ├── mysql
+      │  ├── data
+      │  ├── initdb
+      │  ├── log
+      │  └── mysql.cnf
+      ├── nacos
+      │  ├── data
+      │  └── logs
+      ├── nginx
+      │  ├── docker-compose.yml
+      │  ├── html
+      │  ├── log
+      │  └── nginx.conf
+      ├── redis
+      │  ├── conf
+      │  ├── data
+      │  └── logs
+      └── rocketmq
+          ├── broker.conf
+          └── data

@@ -1,0 +1,7 @@
+# mysql-exporter.cnf
+[client]
+user = root
+password = admin123
+host = host.docker.internal
+port = 3306
+protocol = tcp

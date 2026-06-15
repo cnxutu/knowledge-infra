@@ -1,0 +1,78 @@
+services:
+  # ======================
+  # BanyanDB - SkyWalking 10.3.0 官方推荐存储
+  # ======================
+  banyandb:
+    image: docker.1ms.run/apache/skywalking-banyandb:0.9.0
+    container_name: banyandb
+    networks:
+      - skywalking-demo
+    ports:
+      - "17912:17912"  # gRPC (OAP 连接)
+      - "17913:17913"  # HTTP (管理 API，可选)
+    command: ["standalone"]
+    environment:
+      BANYANDB_SERVICE_STREAM_WORKER_NUM: 4
+      BANYANDB_SERVICE_MEASURE_WORKER_NUM: 4
+      BANYANDB_DATABASE_DATA_ROOT_PATH: /data
+    volumes:
+      - ./banyandb-data:/data
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 17912"]
+      interval: 5s
+      timeout: 60s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+
+  # ======================
+  # SkyWalking OAP Server (10.3.0) + BanyanDB 存储
+  # ======================
+  oap:
+    image: docker.1ms.run/apache/skywalking-oap-server:10.3.0
+    container_name: oap
+    depends_on:
+      banyandb:
+        condition: service_healthy
+    networks:
+      - skywalking-demo
+    ports:
+      - "11800:11800"  # gRPC: Traces, Logs, Metrics
+      - "12800:12800"  # HTTP: REST API, UI 数据源
+    environment:
+      SW_STORAGE: banyandb
+      SW_STORAGE_BANYANDB_TARGETS: banyandb:17912
+      SW_HEALTH_CHECKER: default
+      SW_TELEMETRY: prometheus
+      SW_RECEIVER_TRACING: default
+      SW_RECEIVER_JVM: default
+      SW_RECEIVER_LOG: default          # ← 关键！启用日志接收
+      SW_LOG_ANALYZER_ACTIVE: "true"    # ← 可选：启用日志分析
+      JAVA_OPTS: "-Xms1024m -Xmx1024m"
+        # healthcheck:
+        # test: ["CMD-SHELL", "curl --fail http://localhost:12800/internal/l7check || exit 1"]
+        # interval: 30s
+        # timeout: 10s
+        # retries: 3
+      # start_period: 20s
+    restart: unless-stopped
+
+  # ======================
+  # SkyWalking UI (10.3.0)
+  # ======================
+  ui:
+    image: docker.1ms.run/apache/skywalking-ui:10.3.0
+    container_name: ui
+    depends_on:
+      - oap
+    networks:
+      - skywalking-demo
+    ports:
+      - "11111:8080"  # 根据你的实际端口映射调整
+    environment:
+      SW_OAP_ADDRESS: http://oap:12800
+    restart: unless-stopped
+
+networks:
+  skywalking-demo:
+    driver: bridge

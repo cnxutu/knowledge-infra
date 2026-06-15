@@ -1,0 +1,123 @@
+version: "3.8"
+
+x-common-environment: &common-environment
+  TZ: Asia/Shanghai
+  SERVER_PORT: "8080"
+  JAVA_OPTS: "-Xms512m -Xmx512m -Djava.security.egd=file:/dev/./urandom"
+
+x-service-template: &service-template
+  image: docker.1ms.run/eclipse-temurin:8-jdk
+  working_dir: /app
+  command: /app/toolkits/startup_springboot.sh
+  env_file:
+    - env.properties
+  restart: always
+  deploy:
+    resources:
+      limits:
+        memory: 768m
+        cpus: '1.0'
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "100m"
+      max-file: "3"
+  healthcheck:
+    test: [ "CMD", "sh", "-c", "wget -qO- http://localhost:8080/health | grep -q 'OK\\|UP' || wget -qO- http://localhost:8080/actuator/health | grep -q 'OK\\|UP'" ]
+    interval: 20s
+    timeout: 10s
+    retries: 3
+    start_period: 60s
+
+services:
+  c-gateway:
+    <<: *service-template
+    container_name: c-gateway
+    environment:
+      <<: *common-environment
+      SERVICE_NAME: c-gateway
+      SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48080"
+    ports:
+      - "48080:8080"
+      - "15005:5005"
+    depends_on:
+      c-system:
+        condition: service_healthy
+    volumes:
+      - ./apps/c-gateway:/app/c-gateway:ro
+      - ./logs/c-gateway:/app/logs
+      - ../toolkits:/app/toolkits:ro
+      - /sys:/hostser/sys:ro
+      - /dev:/hostser/dev:ro
+      - /proc:/hostser/proc:ro
+      - /run/udev:/run/udev:ro
+
+  c-system:
+    <<: *service-template
+    container_name: c-system
+    environment:
+      <<: *common-environment
+      SERVICE_NAME: c-system
+      SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48081"
+    ports:
+      - "48081:8080"
+      - "15006:5005"
+    volumes:
+      - ./apps/c-system:/app/c-system:ro
+      - ./logs/c-system:/app/logs
+      - ../toolkits:/app/toolkits:ro
+      - ./files:/app/files:rw
+
+  c-iot:
+    <<: *service-template
+    container_name: c-iot
+    environment:
+      <<: *common-environment
+      SERVICE_NAME: c-iot
+      SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48082"
+    ports:
+      - "48082:8080"
+      - "15007:5005"
+    depends_on:
+      c-system:
+        condition: service_healthy
+    volumes:
+      - ./apps/c-iot:/app/c-iot:ro
+      - ./logs/c-iot:/app/logs
+      - ../toolkits:/app/toolkits:ro
+
+  c-tag:
+    <<: *service-template
+    container_name: c-tag
+    environment:
+      <<: *common-environment
+      SERVICE_NAME: c-tag
+      SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48083"
+    ports:
+      - "48083:8080"
+      - "15008:5005"
+    depends_on:
+      c-system:
+        condition: service_healthy
+    volumes:
+      - ./apps/c-tag:/app/c-tag:ro
+      - ./logs/c-tag:/app/logs
+      - ../toolkits:/app/toolkits:ro
+
+  c-iot-gateway:
+    <<: *service-template
+    container_name: c-iot-gateway
+    environment:
+      <<: *common-environment
+      SERVICE_NAME: c-iot-gateway
+      SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48084"
+    ports:
+      - "48084:8080"
+      - "15009:5005"
+    depends_on:
+      c-iot:
+        condition: service_healthy
+    volumes:
+      - ./apps/c-iot-gateway:/app/c-iot-gateway:ro
+      - ./logs/c-iot-gateway:/app/logs
+      - ../toolkits:/app/toolkits:ro

@@ -1,0 +1,17 @@
+scrape_configs:
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['host.docker.internal:9121']
+
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['host.docker.internal:9104']
+
+  - job_name: 'rocketmq'
+    static_configs:
+      - targets: ['host.docker.internal:5557']
+
+  - job_name: 'emqx'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['host.docker.internal:8084']

@@ -1,0 +1,19 @@
+services:
+  tdengine:
+    image: docker.1ms.run/tdengine/tdengine:3.3.6.13  # 使用最新稳定版
+    container_name: tdengine
+    restart: unless-stopped
+    ports:
+      - "6030:6030"   # RESTful API (HTTP)
+      - "6041:6041"   # Native client port (JDBC/ODBC)
+    volumes:
+      - ./data:/var/lib/taos    # 持久化数据
+      - ./logs:/var/log/taos    # 持久化日志
+    environment:
+      - TAOS_FQDN=localhost     # 关键！宿主机连接需设为 localhost
+    networks:
+      - tdnet
+
+networks:
+  tdnet:
+    driver: bridge

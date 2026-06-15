@@ -1,0 +1,25 @@
+# 容器监控
+- targets: [ '192.168.1.107:9999' ]
+  labels:
+    env: 'dev'
+    host: 'dev-server-107'
+    
+# 服务器监控
+- targets: ['192.168.1.107:19100']
+  labels:
+    env: 'dev'
+    host: 'dev-server-107'
+
+# 综管业务服务监控
+- targets: [ '192.168.1.107:58888' ]
+  labels:
+    env: 'dev'
+    host: 'dev-server-107'
+    app: 'low-altitude-flight'
+    
+# V2.1业务服务监控 
+- targets: [ '192.168.1.107:9091' ]
+  labels:
+    env: 'dev'
+    host: 'dev-server-107'
+    app: 'uav-detection'

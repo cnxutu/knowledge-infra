@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  biz1:
+    image: docker.1ms.run/eclipse-temurin:8-jdk
+    container_name: biz1
+    working_dir: /app
+    command: >
+      sh -c "java ${JAVA_OPTS}
+      -Dlogging.file.path=/logs
+      -Dlogging.file.name=/logs/biz1.log
+      -jar /app/app.jar"
+    environment:
+      - TZ=Asia/Shanghai
+      - JAVA_OPTS=-Xms512m -Xmx512m -Djava.security.egd=file:/dev/./urandom
+    env_file:
+      - env.properties  # 理论上业务自己维护自己的环境变量
+    ports:
+      - "49081:49081"
+    volumes:
+      - ./apps/biz1.jar:/app/app.jar:ro         # 自行修改业务名称
+      - ./logs/biz1:/logs
+      - ../toolkits/arthas:/opt/arthas:ro
+    restart: always

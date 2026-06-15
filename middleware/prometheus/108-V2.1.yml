@@ -1,0 +1,42 @@
+# 容器监控
+- targets: [ '192.168.1.108:9999' ]
+  labels:
+    env: 'dev2.1.0'
+    host: '192.168.1.108'
+
+# 服务器监控
+- targets: [ '192.168.1.108:19100' ]
+  labels:
+    env: 'dev2.1.0'
+    host: '192.168.1.108'
+
+# 微服务基座监控
+- targets: [ '192.168.1.108:48081' ]
+  labels:
+    env: 'dev2.1.0'
+    host: '192.168.1.108'
+    app: 'c-system'
+
+- targets: [ '192.168.1.108:48080' ]
+  labels:
+    env: 'dev2.1.0'
+    host: '192.168.1.108'
+    app: 'c-gateway'
+
+- targets: [ '192.168.1.108:48082' ]
+  labels:
+    env: 'dev2.1.0'
+    host: '192.168.1.108'
+    app: 'c-iot'
+
+- targets: [ '192.168.1.108:48083' ]
+  labels:
+    env: 'dev2.1.0'
+    host: '192.168.1.108'
+    app: 'c-tag'
+
+- targets: [ '192.168.1.108:48084' ]
+  labels:
+    env: 'dev2.1.0'
+    host: '192.168.1.108'
+    app: 'c-iot-gateway'
