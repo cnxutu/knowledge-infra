@@ -76,9 +76,6 @@ startup_compose "Middleware" "$SCRIPT_DIR/middleware"
 # 3. 等待 nacos healthy（微服务依赖 nacos 注册）
 wait_healthy "$SCRIPT_DIR/middleware" "nacos"
 
-# 3.1 初始化 TDengine（创建 iot 数据库）
-bash "$SCRIPT_DIR/middleware/tdengine/init-tdengine/init.sh"
-
 # 4. 启动微服务
 startup_compose "Microsystem" "$SCRIPT_DIR/microsystem"
 

@@ -58,6 +58,11 @@ for k in "${!APP_CONFIG[@]}"; do
   log "Config[$k] = ${APP_CONFIG[$k]}"
 done
 
+if [[ -z "$APPS_LIST" ]]; then
+  log "No frontend apps configured. Skip download."
+  exit 0
+fi
+
 # 拆分应用列表
 IFS=',' read -ra APP_NAMES <<< "$APPS_LIST"
 

@@ -1,12 +1,11 @@
-version: "3.8"
-
 x-common-environment: &common-environment
   TZ: Asia/Shanghai
-  SERVER_PORT: "8080"
+  SERVER_PORT: "8081"
+  APP_PORT: "8081"
   JAVA_OPTS: "-Xms512m -Xmx512m -Djava.security.egd=file:/dev/./urandom"
 
 x-service-template: &service-template
-  image: docker.1ms.run/eclipse-temurin:8-jdk
+  image: eclipse-temurin:17-jre
   working_dir: /app
   command: /app/toolkits/startup_springboot.sh
   env_file:
@@ -16,108 +15,113 @@ x-service-template: &service-template
     resources:
       limits:
         memory: 768m
-        cpus: '1.0'
+        cpus: "1.0"
   logging:
     driver: "json-file"
     options:
       max-size: "100m"
       max-file: "3"
   healthcheck:
-    test: [ "CMD", "sh", "-c", "wget -qO- http://localhost:8080/health | grep -q 'OK\\|UP' || wget -qO- http://localhost:8080/actuator/health | grep -q 'OK\\|UP'" ]
+    test: [ "CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q 'UP' || wget -qO- http://localhost:8081/health | grep -q 'OK\\|UP'" ]
     interval: 20s
     timeout: 10s
     retries: 3
     start_period: 60s
 
 services:
-  c-gateway:
+  kb-auth:
     <<: *service-template
-    container_name: c-gateway
+    container_name: kb-auth
     environment:
       <<: *common-environment
-      SERVICE_NAME: c-gateway
+      SERVICE_NAME: kb-auth
+      APP_JAR: kb-auth-bootstrap.jar
+      SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48081"
+    ports:
+      - "48081:8081"
+      - "15006:5005"
+    volumes:
+      - ./apps/kb-auth:/app/kb-auth:ro
+      - ./logs/kb-auth:/app/logs
+      - ../toolkits:/app/toolkits:ro
+      - ./files:/app/files:rw
+
+  kb-gateway:
+    <<: *service-template
+    container_name: kb-gateway
+    environment:
+      <<: *common-environment
+      SERVICE_NAME: kb-gateway
+      APP_JAR: kb-gateway-bootstrap.jar
       SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48080"
     ports:
-      - "48080:8080"
+      - "48080:8081"
       - "15005:5005"
     depends_on:
-      c-system:
+      kb-auth:
         condition: service_healthy
     volumes:
-      - ./apps/c-gateway:/app/c-gateway:ro
-      - ./logs/c-gateway:/app/logs
+      - ./apps/kb-gateway:/app/kb-gateway:ro
+      - ./logs/kb-gateway:/app/logs
       - ../toolkits:/app/toolkits:ro
       - /sys:/hostser/sys:ro
       - /dev:/hostser/dev:ro
       - /proc:/hostser/proc:ro
       - /run/udev:/run/udev:ro
 
-  c-system:
+  kb-content:
     <<: *service-template
-    container_name: c-system
+    container_name: kb-content
     environment:
       <<: *common-environment
-      SERVICE_NAME: c-system
-      SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48081"
-    ports:
-      - "48081:8080"
-      - "15006:5005"
-    volumes:
-      - ./apps/c-system:/app/c-system:ro
-      - ./logs/c-system:/app/logs
-      - ../toolkits:/app/toolkits:ro
-      - ./files:/app/files:rw
-
-  c-iot:
-    <<: *service-template
-    container_name: c-iot
-    environment:
-      <<: *common-environment
-      SERVICE_NAME: c-iot
+      SERVICE_NAME: kb-content
+      APP_JAR: kb-content-bootstrap.jar
       SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48082"
     ports:
-      - "48082:8080"
+      - "48082:8081"
       - "15007:5005"
     depends_on:
-      c-system:
+      kb-auth:
         condition: service_healthy
     volumes:
-      - ./apps/c-iot:/app/c-iot:ro
-      - ./logs/c-iot:/app/logs
+      - ./apps/kb-content:/app/kb-content:ro
+      - ./logs/kb-content:/app/logs
       - ../toolkits:/app/toolkits:ro
 
-  c-tag:
+  kb-message:
     <<: *service-template
-    container_name: c-tag
+    container_name: kb-message
     environment:
       <<: *common-environment
-      SERVICE_NAME: c-tag
+      SERVICE_NAME: kb-message
+      APP_JAR: kb-message-bootstrap.jar
       SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48083"
     ports:
-      - "48083:8080"
+      - "48083:8081"
       - "15008:5005"
     depends_on:
-      c-system:
+      kb-auth:
         condition: service_healthy
     volumes:
-      - ./apps/c-tag:/app/c-tag:ro
-      - ./logs/c-tag:/app/logs
+      - ./apps/kb-message:/app/kb-message:ro
+      - ./logs/kb-message:/app/logs
       - ../toolkits:/app/toolkits:ro
 
-  c-iot-gateway:
+  kb-search:
     <<: *service-template
-    container_name: c-iot-gateway
+    container_name: kb-search
     environment:
       <<: *common-environment
-      SERVICE_NAME: c-iot-gateway
+      SERVICE_NAME: kb-search
+      APP_JAR: kb-search-bootstrap.jar
       SPRING_CLOUD_NACOS_DISCOVERY_PORT: "48084"
     ports:
-      - "48084:8080"
+      - "48084:8081"
       - "15009:5005"
     depends_on:
-      c-iot:
+      kb-auth:
         condition: service_healthy
     volumes:
-      - ./apps/c-iot-gateway:/app/c-iot-gateway:ro
-      - ./logs/c-iot-gateway:/app/logs
+      - ./apps/kb-search:/app/kb-search:ro
+      - ./logs/kb-search:/app/logs
       - ../toolkits:/app/toolkits:ro

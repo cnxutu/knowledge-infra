@@ -33,7 +33,7 @@ if [ "${SKYWALKING_ENABLED:-false}" = "true" ]; then
         -Dlogging.file.name=/app/logs/${SERVICE_NAME}.log \
 	      -Dstar.env.tag= \
 	      -Dstar.tenant.enable=false \
-        -jar /app/${SERVICE_NAME}/app.jar
+        -jar /app/${SERVICE_NAME}/${APP_JAR:-app.jar}
 else
     echo "SkyWalking not enabled, starting without agent..."
     exec java ${JAVA_OPTS} \
@@ -42,5 +42,5 @@ else
         -Dlogging.file.name=/app/logs/${SERVICE_NAME}.log \
 	      -Dstar.env.tag= \
 	      -Dstar.tenant.enable=false \
-        -jar /app/${SERVICE_NAME}/app.jar
+        -jar /app/${SERVICE_NAME}/${APP_JAR:-app.jar}
 fi

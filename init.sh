@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 cd middleware
 bash ./initdir.sh
@@ -6,6 +7,7 @@ echo "Middleware init done"
 
 cd nginx
 bash ./sync-frontend.sh
+echo "Frontend sync done"
 
 cd ../../
 

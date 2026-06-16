@@ -1,20 +1,11 @@
 #!/bin/bash
+set -euo pipefail
 
-rm -rf rocketmq/data
-rm -rf emqx/data
-rm -rf emqx/log
+mkdir -p mysql/data mysql/log
+mkdir -p redis/data redis/logs redis/conf
+mkdir -p nacos/data nacos/logs
+mkdir -p elasticsearch/data
+mkdir -p nginx/html nginx/log
+mkdir -p rocketmq/data/broker/logs rocketmq/data/broker/store rocketmq/data/namesrv/logs
 
-mkdir -p rocketmq/data/broker/logs
-mkdir -p rocketmq/data/broker/store
-mkdir -p rocketmq/data/namesrv/logs
-chmod -R 777 rocketmq/data  # 确保容器内用户可写
-
-mkdir -p emqx/data
-mkdir -p emqx/log
-chmod -R 777 emqx/data
-chmod -R 777 emqx/log
-
-# cd nginx
-# bash ./unzip_html.sh
-# echo "Unzip html done"
-# cd ../
+chmod -R 777 mysql/data mysql/log redis/data redis/logs nacos/data nacos/logs elasticsearch/data nginx/log rocketmq/data
